@@ -1,0 +1,30 @@
+@use "@/styles/variables" as *;
+
+section.students {
+  padding: 1rem;
+  flex: 1;
+
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    
+    .add-student__button {
+      align-self: flex-end;
+      background-color: var(--primary-clr);
+      padding: .5rem 1rem;
+      margin: .25rem;
+      color: white;
+      border-radius: .5rem;
+      transition: all .2s ease-in-out;
+    }
+  
+    .add-student__button:hover {
+      background-color: var(--primary-hover-clr);
+      transform: scale(1.05);
+    }
+  }
+
+  
+}
