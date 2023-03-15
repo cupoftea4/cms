@@ -1,0 +1,73 @@
+.modal-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, .5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 100;
+}
+
+.modal {
+  background-color: var(--bg-darker-clr);
+  padding: 1rem;
+  border-radius: .5rem;
+  width: clamp(20rem, 50vw, 30rem); /* Fix this */
+  margin: 1rem;
+  form {
+    max-width: 18rem;
+    margin: 0 auto;
+    padding: 1rem 0;
+    .line {
+      display: flex;
+      justify-content: space-between;
+      padding: .25rem
+    }
+    input, select {
+      width: 9rem;
+      padding: .125rem .25rem;
+      border-radius: .25rem;
+      border: 1px solid black;
+      position: relative;
+
+      &.invalid {
+        border: 2px solid rgb(255, 99, 99);        
+      }
+    }
+    div:has(input.invalid) {
+      position: relative;
+      &:has(:is(input[name=surname], input[name=name]).invalid) {
+        margin-bottom: .75rem;
+        &::before {
+          content: 'Min length 3 chars, no numbers';
+        }
+      }
+      &::before {
+        position: absolute;
+        top: 90%;
+        right: .25rem;
+        z-index: 100;
+        content: '';
+        color: rgb(255, 99, 99);
+        font-size: .75rem;
+      }
+
+    }
+    input[type=submit] {
+      background-color: var(--primary-clr);
+      color: white;
+      margin: .75rem;
+      border: none;
+    }
+    .modal input[type=submit]:hover {
+      cursor: pointer;
+      background-color: var(--primary-hover-clr);
+    }
+    
+  
+  }
+}

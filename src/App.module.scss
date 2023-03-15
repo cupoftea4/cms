@@ -1,0 +1,16 @@
+.main {
+  display: flex;
+  flex-wrap: wrap;
+  .nav {
+    min-width: 10rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+
+  .main {
+    flex: 1;
+  }
+  
+}

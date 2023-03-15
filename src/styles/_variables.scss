@@ -1,0 +1,18 @@
+:root {
+  --primary-clr: #99545E;
+  --primary-hover-clr: hsl(351, 36%, 55%);
+  --accent-clr: #F6B560;
+  --accent-hover-clr: hsl(39, 96%, 61%);
+  --bg-clr: hsl(0, 0%, 96%);
+  --bg-darker-clr: hsl(0, 0%, 88%);
+  --fg-clr: #333;
+
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-clr: hsl(0, 0%, 14%);
+    --bg-darker-clr: hsl(0, 0%, 20%);
+    --fg-clr: #f5f5f5;
+  }
+}
