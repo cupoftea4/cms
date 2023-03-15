@@ -13,3 +13,11 @@ app.use(pinia)
 app.use(router);
 
 app.mount('#app');
+
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js');
+  });
+}
+
