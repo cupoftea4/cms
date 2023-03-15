@@ -1,0 +1,49 @@
+
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: var(--primary-clr);
+  color: white;
+
+  .header-left {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    .bell {
+      transition: all .25s ease-in-out;
+      margin: .5rem 0rem; 
+    }
+    
+    .bell:hover {
+      transform: translate3d(0, 0, 0);
+      scale: 1.1;
+      animation: shake .4s ease-in-out 2;
+      transform-origin: top;
+    }
+
+    .user {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding-bottom: .75rem;
+    }
+  }
+}
+
+
+@keyframes shake {
+  0% {
+    transform: rotate(0);
+  }
+  30% {
+    transform: rotate(-20deg);
+  }  
+  70% {
+    transform: rotate(20deg);
+  }  
+  100% {
+    transform: rotate(0deg);
+  }
+}

@@ -1,0 +1,50 @@
+
+.table-wrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: min(70rem, 80vw);
+  margin: 0 auto;
+  overflow-x: auto;
+
+  
+  .table {
+    border-collapse: collapse;
+  }
+  
+  .table td, th {
+    border: 1px solid #ccc;
+    text-align: center;
+    padding: .25rem;
+  }
+  
+  .table tbody tr:nth-child(odd) {
+    background-color: hsla(0, 0%, 73%, 0.165);
+  }
+  
+  .table td:has(.status) {
+    position: relative;
+  }
+  
+  .table .status {
+    position: absolute;
+    left: 50%;
+    right: 50%;
+    transform: translate(-50%, -50%);
+    width: .75rem;
+    height: .75rem;
+    border-radius: 50%;
+    background-color: gray;
+  }
+  
+  .table .status.active {
+    background-color: green;
+  }
+  
+  input[type=checkbox] {
+    accent-color: var(--primary-clr);
+  }
+  
+  tr:has(input[type=checkbox]:checked) .status {
+    background-color: green;
+  }
+}
