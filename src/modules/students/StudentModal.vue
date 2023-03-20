@@ -11,7 +11,7 @@ const { onAdd, onEdit, close, studentToEdit, mode} = defineProps<{
   studentToEdit: Student | null;
   mode: StudentModalMode;
 }>();
-
+   
 const groups = ref(["PZ-22", "PZ-23", "PZ-24"]);
 const student = ref<FormStudent>({ 
     group: studentToEdit?.group ?? "", 
@@ -22,7 +22,6 @@ const student = ref<FormStudent>({
 });
 
 const submit = (e: Event) => {
-  e.preventDefault();
   if (mode === "create") onAdd(student.value);
   else onEdit(student.value, studentToEdit!.id);
   close();
@@ -43,7 +42,8 @@ const checkInput = (e: Event) => {
       <h2>
         {{ mode === "edit" ? "Edit" : "Create" }} student
       </h2>
-      <form @submit=submit>
+      <form @submit.stop.prevent=submit>
+        <input type='hidden' :value='studentToEdit?.id ?? ""'>
         <div :class=styles.line>
           <label for="group">Group</label>
           <select @blur=checkInput name="group" v-model=student.group required>
@@ -68,6 +68,7 @@ const checkInput = (e: Event) => {
           <select name="gender" v-model=student.gender>
             <option value="M">Male</option>
             <option value="F">Female</option>
+            <option value="B">Bender</option>
           </select>
         </div>
         <div :class=styles.line>

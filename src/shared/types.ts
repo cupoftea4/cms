@@ -3,7 +3,7 @@ export type Student = {
   group: string;
   name: string;
   surname: string;
-  gender: 'M' | 'F';
+  gender: 'M' | 'F' | 'B';
   birthDate: string;
   status: 'active' | 'inactive';
 };

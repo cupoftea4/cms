@@ -31,11 +31,12 @@ const showModal = ref(false);
 const modalMode = ref<StudentModalMode>("create");
 const studentToEdit = ref<Student | null>(null);
 
-const closeModal = () => showModal.value = false;
 const openModal = (mode: StudentModalMode) => {
+  if (mode === "create") studentToEdit.value = null;
   modalMode.value = mode;
   showModal.value = true;
 }
+const closeModal = () => showModal.value = false;
 
 const onEditStudent = (id: string) => {
   studentToEdit.value = students.value.find(s => s.id === id) ?? null;
@@ -64,5 +65,12 @@ const deleteStudent = (id: string) => {
     </div>
     <StudentsTable :onEdit=onEditStudent :onDelete=deleteStudent :students=students />
   </section>
-  <StudentModal :studentToEdit=studentToEdit v-if=showModal :close=closeModal :onAdd=addStudent :onEdit=editStudent :mode=modalMode />
+  <StudentModal 
+    v-if=showModal
+    :studentToEdit=studentToEdit  
+    :close=closeModal 
+    :onAdd=addStudent 
+    :onEdit=editStudent
+    :mode=modalMode 
+  />
 </template>
