@@ -3,6 +3,8 @@
 import styles from "./StudentsTable.module.scss";
 import { classes } from "@/styles/utils";
 import type { Student } from "@/shared/types";
+import EditIcon from "@/assets/EditIcon.vue";
+import RemoveIcon from "@/assets/RemoveIcon.vue"; 
 
 const { students, onEdit, onDelete } = defineProps<{
   onEdit: (id: string) => void;
@@ -35,8 +37,8 @@ const { students, onEdit, onDelete } = defineProps<{
             <td>{{ student.birthDate }}</td>
             <td><div :class='classes(styles.status, student.status === "active" && styles.active)'></div></td>
             <td>
-              <button @click=onEdit(student.id) :class='styles["edit-student__button"]'>Edit</button>
-              <button @click=onDelete(student.id) :class='styles["delete-student__button"]'>Delete</button>
+              <button @click=onEdit(student.id) :class='styles["edit-student__button"]'><EditIcon /></button>
+              <button @click=onDelete(student.id) :class='styles["delete-student__button"]'><RemoveIcon/></button>
             </td>
           </tr>
         </tbody>

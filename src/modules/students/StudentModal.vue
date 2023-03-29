@@ -24,7 +24,6 @@ const student = ref<FormStudent>({
 const submit = (e: Event) => {
   if (mode === "create") onAdd(student.value);
   else onEdit(student.value, studentToEdit!.id);
-  close();
 };
 
 const checkInput = (e: Event) => {

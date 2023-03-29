@@ -28,3 +28,18 @@ section.students {
 
   
 }
+
+.error {
+  z-index: 1000;
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background-color: #e16c6c;
+  width: 15rem;
+  height: 5rem;
+  color: rgb(238, 231, 222);
+  border-radius: .5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
