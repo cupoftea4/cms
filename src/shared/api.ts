@@ -2,9 +2,9 @@
 type FetchOptions = Omit<RequestInit, "body" | "method">;
 type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
-const API_VERSION = "v1";
+const API_VERSION = "2";
 
-const FETCH_ORIGIN = `http://localhost:8000/api/${API_VERSION}`;
+const FETCH_ORIGIN = `http://localhost:8000/api/v${API_VERSION}`;
 
 /**
  * Custom fetch function.
@@ -13,13 +13,14 @@ const FETCH_ORIGIN = `http://localhost:8000/api/${API_VERSION}`;
 export function fetchJson<T>(
   url: string, 
   method: FetchMethod = "GET",
-  body?: Record<string, any>, 
+  body?: Record<string, unknown>, 
   otherOptions?: FetchOptions
 ) {
   return fetch(FETCH_ORIGIN + url, {
       method,
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/json"
       },
       body: JSON.stringify(body),
       ...otherOptions

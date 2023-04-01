@@ -1,19 +1,30 @@
 import { fetchJson } from "@/shared/api";
-import type { FormStudent, Student } from "@/shared/types";
+import type { FormStudent, Group, Student } from "@/shared/types";
 
-export function getStudents() {
-  return fetchJson<Student[]>("/students");
+type StudentsResponse = {
+  data: Student[];
+  meta: {
+    current_page: number;
+    last_page: number;
+  }
+};
+
+export function getStudents(page: number = 1) {
+  return fetchJson<StudentsResponse>("/students?page=" + page);
 }
 
 export function createStudent(student: FormStudent) {
-  
-  return fetchJson<Student[]>("/students", "POST", student);
+  return fetchJson<{data: Student}>("/students", "POST", student).then(res => res.data);
 }
 
-export function deleteStudent(id: number): Promise<void> {
-  return fetchJson<void>(`/students/${id}`, "DELETE");
+export function deleteStudent(id: number) {
+  return fetchJson(`/students/${id}`, "DELETE");
 }
 
-export function updateStudent(student: Student): Promise<Student> {
-  return fetchJson<Student>(`/students/${student.id}`, "PUT", student);
+export function updateStudent(id: number, student: FormStudent) {
+  return fetchJson<Student>(`/students/${id}`, "PUT", student);
+}
+
+export function getGroups() {
+  return fetchJson<Group[]>("/groups");
 }

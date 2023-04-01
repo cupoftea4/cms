@@ -1,27 +1,36 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import styles from './StudentModal.module.scss';
-import type { Student, FormStudent, StudentModalMode } from '@/shared/types';
+import type { Student, FormStudent, StudentModalMode, Group } from '@/shared/types';
+import { getGroups } from './api';
 
 
 const { onAdd, onEdit, close, studentToEdit, mode} = defineProps<{
-  onEdit: (student: FormStudent, id: string) => void;
+  onEdit: (student: FormStudent, id: number) => void;
   onAdd: (student: FormStudent) => void;
   close: () => void;
   studentToEdit: Student | null;
   mode: StudentModalMode;
 }>();
    
-const groups = ref(["PZ-22", "PZ-23", "PZ-24"]);
+const groups = ref<Group[]>([]);
 const student = ref<FormStudent>({ 
-    group: studentToEdit?.group ?? "", 
+    groupId: 1, 
     name: studentToEdit?.name ?? "", 
     surname: studentToEdit?.surname ?? "",
     gender: studentToEdit?.gender ?? "M", 
-    birthDate: studentToEdit?.birthDate ?? ""
+    birthday: studentToEdit?.birthday ?? ""
 });
 
-const submit = (e: Event) => {
+onMounted(async () => {
+  groups.value = await getGroups();
+});
+
+watch(groups, () => {
+  student.value.groupId = (studentToEdit && groups.value.find((group) => group.name === studentToEdit.group)?.id) ?? 1;
+});
+
+const submit = () => {
   if (mode === "create") onAdd(student.value);
   else onEdit(student.value, studentToEdit!.id);
 };
@@ -45,9 +54,9 @@ const checkInput = (e: Event) => {
         <input type='hidden' :value='studentToEdit?.id ?? ""'>
         <div :class=styles.line>
           <label for="group">Group</label>
-          <select @blur=checkInput name="group" v-model=student.group required>
+          <select @blur=checkInput name="group" v-model=student.groupId required>
             <option value="" disabled hidden selected>- Select group -</option>
-            <option v-for='group in groups' :key=group>{{ group }}</option>
+            <option v-for='group in groups' :key=group.id :value=group.id>{{ group.name }}</option>
           </select>
         </div>
         <div :class=styles.line >
@@ -72,7 +81,7 @@ const checkInput = (e: Event) => {
         </div>
         <div :class=styles.line>
           <label for="birthday">Birthday</label>
-          <input @blur=checkInput type="date" name="birthday" v-model=student.birthDate required>
+          <input @blur=checkInput type="date" name="birthday" v-model=student.birthday required>
         </div>
         <input type="submit" value="OK"/>
         <button class="btn-close" @click=close>Close</button>
