@@ -22,8 +22,8 @@ const pagesCount = ref(1);
 onMounted(setStudents);
 
 function handleStudentError(error?: any) {
-  if (typeof error === 'string') {
-    toast.error(error ?? 'Something went wrong');
+  if (typeof error.message === 'string') {
+    toast.error(error.message ?? 'Something went wrong');
   }
   status.value = 'error';
   console.log("ERROR caught: ", error);
@@ -74,6 +74,7 @@ const addStudent = async (student: FormStudent) => {
     students.value.push(createdStudent);
     closeModal();
     status.value = 'success';
+    goToPage(pagesCount.value);
   } catch (error) {
     handleStudentError(error);
   }
@@ -127,5 +128,4 @@ const goToPage = (pageNumber: number) => {
     :onEdit=editStudent
     :mode=modalMode 
   />
-  <div v-if='status === "error"' :class=styles.error>Server error ocurred</div>
 </template>

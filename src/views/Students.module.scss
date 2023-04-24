@@ -31,11 +31,12 @@ section.students {
 
 .error {
   z-index: 1000;
-  position: absolute;
+  position: fixed;
   bottom: 1rem;
   right: 1rem;
   background-color: #e16c6c;
-  width: 15rem;
+  min-width: 15rem;
+  padding: 1rem;
   height: 5rem;
   color: rgb(238, 231, 222);
   border-radius: .5rem;

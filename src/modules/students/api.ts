@@ -10,19 +10,19 @@ type StudentsResponse = {
 };
 
 export function getStudents(page: number = 1) {
-  return fetchJson<StudentsResponse>("/students?page=" + page);
+  return fetchJson<StudentsResponse>("/students?page=" + page)
 }
 
 export function createStudent(student: FormStudent) {
-  return fetchJson<{data: Student}>("/students", "POST", student).then(res => res.data);
+  return fetchJson<{data: Student}>("/students", true, "POST", student).then(res => res.data);
 }
 
 export function deleteStudent(id: number) {
-  return fetchJson(`/students/${id}`, "DELETE");
+  return fetchJson(`/students/${id}`, true, "DELETE");
 }
 
 export function updateStudent(id: number, student: FormStudent) {
-  return fetchJson<Student>(`/students/${id}`, "PUT", student);
+  return fetchJson<Student>(`/students/${id}`, true, "PUT", student);
 }
 
 export function getGroups() {

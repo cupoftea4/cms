@@ -12,9 +12,7 @@ const pinia = createPinia();
 
 app.use(pinia)
 app.use(router);
-app.use(Vue3Toasity, {
-  limit: 2,
-});
+app.use(Vue3Toasity, { limit: 1, position: 'bottom-center' });
 
 app.mount('#app');
 
