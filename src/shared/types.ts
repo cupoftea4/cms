@@ -1,13 +1,24 @@
 export type Student = {
-  id: string;
+  id: number;
   group: string;
   name: string;
   surname: string;
-  gender: 'M' | 'F';
-  birthDate: string;
+  gender: 'M' | 'F' | 'B';
+  birthday: string;
   status: 'active' | 'inactive';
 };
 
-export type FormStudent = Omit<Student, "id" | "status">;
+export type FormStudent = Omit<Student, "id" | "status" | "group"> & {"groupId": number};
 
 export type StudentModalMode = 'create' | 'edit';
+
+export type Group = {
+  id: number;
+  name: string;
+};
+
+export type User = {
+  id: number
+  name: string
+  email: string
+};

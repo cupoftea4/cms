@@ -3,11 +3,16 @@
 import styles from "./StudentsTable.module.scss";
 import { classes } from "@/styles/utils";
 import type { Student } from "@/shared/types";
+import EditIcon from "@/assets/EditIcon.vue";
+import RemoveIcon from "@/assets/RemoveIcon.vue"; 
 
-const { students, onEdit, onDelete } = defineProps<{
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
+const { students, onEdit, onDelete, pagesCount, page, onPageChange } = defineProps<{
+  onEdit: (id: number) => void;
+  onDelete: (id: number) => void;
+  onPageChange: (page: number) => void;
   students: Student[];
+  pagesCount: number;
+  page: number;
 }>();
 
 </script>
@@ -32,14 +37,21 @@ const { students, onEdit, onDelete } = defineProps<{
             <td>{{ student.group }}</td>
             <td>{{ student.name }} {{ student.surname }}</td>
             <td>{{ student.gender }}</td>
-            <td>{{ student.birthDate }}</td>
+            <td>{{ student.birthday }}</td>
             <td><div :class='classes(styles.status, student.status === "active" && styles.active)'></div></td>
             <td>
-              <button @click=onEdit(student.id) :class='styles["edit-student__button"]'>Edit</button>
-              <button @click=onDelete(student.id) :class='styles["delete-student__button"]'>Delete</button>
+              <button @click=onEdit(student.id) :class='styles["edit-student__button"]'><EditIcon /></button>
+              <button @click=onDelete(student.id) :class='styles["delete-student__button"]'><RemoveIcon/></button>
             </td>
           </tr>
         </tbody>
       </table>
+      <div>
+        <button 
+          v-for='i in Array.from({length: pagesCount}, (_, i) => i + 1)'
+          :key=i :class='classes(styles.page, i === page && styles.active)'
+          @click=onPageChange(i)
+        >{{ i }}</button>
+      </div>
     </div>
 </template>
