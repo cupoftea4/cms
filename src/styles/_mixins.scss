@@ -1,0 +1,97 @@
+@mixin auto-scroll (
+  $direction: y, 
+  $width: auto, 
+  $track-color: var(--accent-clr), 
+  $thumb-color: var(--accent-clr), 
+  $setForFirefox: true
+) {
+  overflow-#{$direction}: auto;
+  scrollbar-width: $width;
+  @if $setForFirefox {
+    scrollbar-color: $thumb-color $track-color;
+  } 
+  
+  $scrollbar-width: .75rem;
+  @if $width == thin {
+    $scrollbar-width: .325rem;
+  } 
+  
+  &::-webkit-scrollbar {
+    height: $scrollbar-width;
+    width: $scrollbar-width;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: $track-color;
+    border-radius: 1rem;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: $thumb-color;
+    border-radius: .5rem;
+
+  }
+
+}
+
+
+
+@mixin mobile {
+  @media only screen and (max-width: 480px) {
+      @content;
+  }
+}
+
+@mixin chat-mobile {
+  @media only screen and (max-width: 720px) {
+      @content;
+  }
+}
+
+@mixin tablet {
+  @media only screen and (max-width: 768px) {
+      @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: 768px) {
+      @content;
+  }
+}
+
+@mixin large-screen {
+  @media (min-width: 1860px) {
+      @content;
+  }
+}
+
+@mixin screen-2k {
+  @media (min-width: 2500px) {
+      @content;
+  }
+}
+
+@mixin screen-4k {
+  @media (min-width: 3600px) {
+      @content;
+  }
+}
+
+@mixin touchscreen {
+  @media (hover: none) {
+      @content;
+  }
+}
+
+@mixin can-hover {
+  @media (hover: hover) {
+      @content;
+  }
+}
+
+@mixin dark-mode {
+  @media screen and (prefers-color-scheme: dark) {
+    @content;
+  }
+}

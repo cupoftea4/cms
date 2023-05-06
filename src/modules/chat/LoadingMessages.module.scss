@@ -1,0 +1,38 @@
+.message {
+  display: flex;
+  align-items: flex-end;
+  gap: .625rem;
+  &.sent {
+    align-self: flex-end;
+  }
+  .avatar, .shape {
+    background-color: gray;
+  }
+  .avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+  }
+
+  .shape {
+    width: calc(50px + var(--random-for-width, #{random(350)}px)); 
+    max-width: 90%;         
+    height: calc(3rem * var(--random-for-height, #{random(3)}));
+    border-radius: .5rem;
+    background-color: gray;
+    background-image: linear-gradient(90deg, gray 30%, darkgray , gray 50%);
+    background-size: 200% 200%;
+    
+    animation: gradient 3s linear infinite;
+  }
+}
+
+
+@keyframes gradient {
+	0% {
+		background-position: 200% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}

@@ -4,6 +4,7 @@ import styles from './Header.module.scss';
 import BellIcon from '@/shared/ui/icons/BellIcon.vue';
 import { useUserStore } from '@/stores/user';
 import { toast } from 'vue3-toastify';
+import { RouterLink } from 'vue-router';
 
 const notifications = ref(["aaa", "bbb"]);
 const userStore = useUserStore();
@@ -23,7 +24,7 @@ function logout() {
 
 <template>
   <header :class=styles.header>
-    <h1>CMS</h1>
+    <h1> <RouterLink to="/"> CMS</RouterLink></h1>
     <span :class="styles['header-left']" @click="" >
       <div class="hover-panel">
         <button :class=styles.bell>
@@ -40,7 +41,7 @@ function logout() {
       <div class="hover-panel">
         <div :class=styles.user>
           <img src="https://www.w3schools.com/howto/img_avatar.png" alt="Avatar" height="34" width="34" />
-          <RouterLink v-if=userStore.user to="/profile">{{ userStore.user.name }}</RouterLink>
+          <RouterLink v-if=userStore.user to="/">{{ userStore.user.name }}</RouterLink>
           <RouterLink v-else to="/login">Log In</RouterLink>
         </div>
         <div class="panel">
