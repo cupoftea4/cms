@@ -1,4 +1,4 @@
-@use "../../styles/mixins" as *;
+@use "../../../styles/mixins" as *;
 
 .chat {
   flex-basis: 100%;
@@ -72,7 +72,9 @@
       }
       .message {
         cursor: pointer;
-        animation: show-message .2s ease-in-out;
+        &.animate {
+          animation: show-message .2s ease-in-out;
+        }
         display: flex;
         gap: .625rem;
         border-radius: .5rem;

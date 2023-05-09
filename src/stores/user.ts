@@ -5,6 +5,11 @@ import { defineStore } from 'pinia';
 export const useUserStore = defineStore('user', {
   state: () : { user: User | null } => ({ user: null }),
 
+  getters: {
+    token() {
+      return localStorage.getItem('token');
+    }
+  },
   actions: {
     updateProfile(user: User, token?: string) {
       if (token) localStorage.setItem('token', token);

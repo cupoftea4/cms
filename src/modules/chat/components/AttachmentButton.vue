@@ -51,8 +51,4 @@ svg {
   cursor: pointer;
 }
 
-/* .file-input-label span {
-  margin-left: 8px;
-  font-size: 14px;
-} */
 </style>

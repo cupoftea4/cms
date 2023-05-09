@@ -3,7 +3,8 @@ import { RouterLink, RouterView, useRouter } from 'vue-router';
 import Header from '@/shared/ui/Header.vue';
 import styles from './App.module.scss';
 
-const HIDE_SIDEBAR_ROUTES = ['login', 'chat'];
+
+const HIDE_SIDEBAR_ROUTES = ['login', 'chat', 'chats'];
 
 const { currentRoute } = useRouter();
 

@@ -1,0 +1,22 @@
+
+.found-item.selected {
+  background-color: var(--primary-clr);
+}
+
+.found {
+  div {
+    cursor: pointer;
+    padding: .5rem 1rem;
+    border-radius: .25rem;
+    transition: background-color .2s ease-in-out;
+    &.selected {
+      background-color: var(--primary-clr);
+      &:hover {
+        background-color: var(--primary-clr);
+      }
+    }
+    &:hover {
+      background-color: #eeeeee75;
+    }
+  }
+}

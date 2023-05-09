@@ -2,6 +2,7 @@
 
 import styles from './LoadingMessages.module.scss';
 import { classes } from '@/styles/utils';
+import { onMounted } from 'vue';
 
 const MESSAGE_SHAPES_COUNT = 6;
 
@@ -12,6 +13,10 @@ function randomInteger(max: number) {
 function isMyMessage(messageIndex: number) {
   return messageIndex % 3 === 0;
 }
+
+onMounted(() => {
+  console.log('LoadingMessages mounted');
+});
 
 </script>
 

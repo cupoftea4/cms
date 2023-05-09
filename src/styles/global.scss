@@ -11,6 +11,7 @@ body {
 
 .hover-panel {
   position: relative;
+  z-index: 500;
 
   .panel {
     display: none;
@@ -21,7 +22,7 @@ body {
     background-color: var(--bg-clr);
     color: var(--fg-clr);
 
-    min-width: 9rem;
+    min-width: 18rem;
     border-radius: .325rem;
     border: 1px solid var(--fg-clr);
     box-shadow: 5px 5px 7px rgba(0, 0, 0, 0.2);

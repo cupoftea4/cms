@@ -3,43 +3,81 @@
 import { ref, computed, onMounted, watchEffect } from 'vue';
 import { isMobile } from '@/shared/utils';
 
-import ChatList from '@/modules/chat/ChatList.vue';
-import Chat from '@/modules/chat/Chat.vue';
-import { getChats } from '@/modules/chat/api';
+import ChatList from '@/modules/chat/components/ChatList.vue';
+import Chat from '@/modules/chat/components/Chat.vue';
 
 import { useWindowResize } from '@/composables/useWindowResize';
 import { useRouter } from 'vue-router';
-import type { ApiChat } from '@/shared/types';
+import { emitGetChats, emitGetUnreadMessages, onNewMessage } from '@/modules/chat/gateway';
+import type { ApiChat, ApiMessage } from '@/shared/types';
+import { useMessagesStore } from '@/stores/messages';
+import { socket } from '@/services/socketio.service';
+import { sortMessages } from '@/modules/chat/helpers';
 
 const chats = ref<ApiChat[]>([]);
 
-const selectedChatId = ref<number>();
+const selectedChatId = ref<string>();
 const { width } = useWindowResize();
-const { currentRoute } = useRouter();
-
-watchEffect(() => {
-  const id = Number(currentRoute.value.hash.slice(1));
-  selectedChatId.value = id || undefined;
-});
+const messagesStore = useMessagesStore();
+const router = useRouter();
 
 const selectedChat = computed(() => chats.value.find((chat) => chat.id === selectedChatId.value));
 
-function selectChat(id: number) {
-  location.hash = `#${id}`;
-}
-
 onMounted(() => {
-  getChats().then((data) => {
+  socket.connect();
+  socket.on('connected', () => {
+    console.log('connected');
+    emitGetChats(data => {
     chats.value = data;
+    onNewMessage('all', (message, chatId) => {
+      if (!chatId) return;
+      updateLastMessage(message, chatId);
+      const chatName = chats.value.find(c => c.id === chatId)?.name;
+      if (!chatName) throw new Error('Chat from received message not found');
+      messagesStore.unreadMessages.push({
+        id: message.id,
+        preview: message.text ?? 'Attachment',
+        timestamp: message.timestamp,
+        chatId, 
+        chatName,
+      })
+
+    });
+    emitGetUnreadMessages(data => messagesStore.unreadMessages = data);
   });
+  });
+
 })
+
+watchEffect(() => {
+  const id = router.currentRoute.value.params.id as string;
+  selectedChatId.value = id || undefined;
+});
+
+function updateLastMessage(message: ApiMessage, chatId: string) {
+  let chat: ApiChat | undefined;
+  chats.value = chats.value.filter(c => {
+    if (c.id === chatId) {
+      chat = c;
+      return false;
+    } 
+    return true;
+  });
+  if (!chat) return;
+  chat.lastMessage = {
+    id: message.id,
+    text: message.text ?? 'Attachment',
+    timestamp: message.timestamp,
+  };
+  chats.value.unshift(chat);
+}
 
 </script>
 
 <template>
   <div class="messenger">
-    <ChatList v-if="!isMobile(width) || !selectedChat" :chats=chats :selectChat=selectChat></ChatList>
-    <Chat v-if=selectedChat :chat=selectedChat></Chat>
+    <ChatList v-if="!isMobile(width) || !selectedChat" :chats=chats ></ChatList>
+    <Chat v-if=selectedChat :chat=selectedChat :onMessage='(m: ApiMessage) => updateLastMessage(m, selectedChatId!)'></Chat>
   </div>
 </template>
 

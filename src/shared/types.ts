@@ -24,35 +24,41 @@ export type User = {
   avatar?: string
 };
 
+export type ChatUser = Pick<User, "id" | "name" | "avatar">;
+
 
 export type ApiChat = {
-  id: number;
+  id: string;
   name: string;
-  avatar: string;
+  avatar: string | null;
   isPrivate: boolean;
+  users: ChatUser[];
   lastMessage: {
-    id: number;
+    id: string;
     text: string;
-    timestamp: number;
-  };
-}
+    timestamp: string;
+  } | null;
+} 
 
 export type ApiMessage = {
-  id: number;
+  id: string;
   text?: string;
-  files?: ApiAttachment[];
-  timestamp: number;
-  replyTo?: ApiMessage;
+  attachments?: ApiAttachment[];
+  timestamp: string;
+  replyTo?: ReplyMessage;
   isRead?: boolean;
-  author: {
+  sender: {
     id: number;
     name: string;
     avatar?: string;
   };
 }
 
-export type PostMessage = Pick<ApiMessage, "text" | "files"> 
-  & { replyToId?: number, authorId: number };
+export type ReplyMessage = { id: string, preview: string } | null;
+export type PostMessage = Pick<ApiMessage, "text" | "attachments"> 
+  & { replyToMessageId?: string, senderId: number, chatId: string };
+
+export type PostChat = Pick<ApiChat, "name" | "isPrivate"> & { userIds: number[], avatar?: File };
 
 export type ClientMessage = ApiMessage & { state?: 'pending' | 'sent' | 'failed' | 'read' };
 
@@ -63,3 +69,5 @@ export type ApiAttachment = {
   type: string;
   name: string;
 }
+
+export type Notification = { id: string, chatId: string, preview: string, timestamp: string, chatName: string };

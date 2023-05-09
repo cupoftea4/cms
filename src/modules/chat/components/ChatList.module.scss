@@ -1,12 +1,10 @@
-@use "../../styles/mixins" as *;
+@use "../../../styles/mixins" as *;
 
 .root {
-
   flex-shrink: 0;
 }
 
 .list {
-  // width: clamp(20rem, 50%, 30rem);
   display: block;
   height: 100%;
   width: 20rem;
@@ -26,10 +24,17 @@
     gap: 1rem;
     flex-grow: 0;
     max-width: 85%;
+    overflow: hidden;
     .data, .preview {
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
+    }
+    .preview {
+      max-width: 10rem;
+      @include chat-mobile {
+        max-width: 80%;
+      }
     }
   }
 

@@ -1,20 +1,27 @@
 <script setup lang="ts">
-import type { ApiAttachment, ApiChat, ApiMessage, ClientMessage } from '@/shared/types';
+import { computed, onMounted, ref, toRefs, watchEffect } from 'vue';
 import { classes } from '@/styles/utils';
-import { computed, onMounted, ref, toRefs } from 'vue';
-import { getMessagesByChatId } from './api';
-import { showAvatar, showName, isMyMessage, sortMessagesByDate, createMessage } from './helpers';
-import styles from './Chat.module.scss'
-import LoadingMessages from './LoadingMessages.vue';
-import AttachmentButton from './AttachmentButton.vue';
+import type { ApiAttachment, ApiChat, ApiMessage, ClientMessage } from '@/shared/types';
+
+import { emitCreateMessage, emitGetMessages, onNewMessage } from '../gateway';
+import { createMessage, isMyMessage, showAvatar, showName, sortMessagesByDate } from '../helpers';
+
+import Avatar from '@/modules/chat/ui/Avatar.vue';
 import SendIcon from '@/assets/SendIcon.vue';
+import LoadingMessages from '../ui/LoadingMessages.vue';
+import AttachmentButton from './AttachmentButton.vue';
 import Message from './Message.vue';
+
+import styles from './Chat.module.scss';
+import { useUserStore } from '@/stores/user';
 
 const props = defineProps<{
   chat: ApiChat | undefined; 
+  onMessage: (message: ApiMessage) => void;
 }>();
 
 const { chat } = toRefs(props);
+const { onMessage } = props;
 
 const messages = ref<ClientMessage[] | null>(null);
 const currentMessage = ref<{text: string, files: File[]}>({text: '', files: []});
@@ -22,24 +29,57 @@ const replyTo = ref<ApiMessage | null>(null);
 const messagesByDate = computed(() => sortMessagesByDate(messages.value));
 const messagesElement = ref<HTMLElement | null>(null);
 const showDragOver = ref(false);
+const userStore = useUserStore();
 
 onMounted(() => {
   if (!chat.value) return;
-  getMessagesByChatId(chat.value.id).then(data => {
-    console.log(data);
-    messages.value = data.map((message) => ({...message, state: message.isRead ? 'read' : 'sent'}));
+  onNewMessage(chat.value.id, (message) => {
+    console.log('new message in Chat', message);
+    messages.value!.unshift({...message, state: message.isRead ? 'read' : 'sent'});
+    messagesElement.value?.scrollTo(0, 0);
   });
 });
 
+watchEffect(() => {
+  console.log("Watch messages", messages.value);
+})
+
+watchEffect(() => {
+  if (!chat.value) return;
+  messages.value = null;
+  emitGetMessages(
+    chat.value.id, 
+    data => {
+      // setTimeout(() => messages.value = data.map((message) => ({...message, state: message.isRead ? 'read' : 'sent'})), 2000);
+      messages.value = data.map((message) => ({...message, state: message.isRead ? 'read' : 'sent'}));
+    }
+  ); 
+});
+
 function sendMessage() {
-  if (!messages.value || (!currentMessage.value.text.trim() && !currentMessage.value.files.length)) return;  
-  const renderFile = (file: ApiAttachment, id: number) => messages.value!.find((m) => m.id === id)!.files!.push(file);
-  const msg = createMessage(currentMessage.value, replyTo.value, renderFile);
+  if (!messages.value || (!currentMessage.value.text.trim() && !currentMessage.value.files.length)) {
+    return;
+  }
+
+  const renderFile = (file: ApiAttachment, id: string): void => {
+    const message = messages.value!.find(m => m.id === id);
+    if (!message) return;
+    message.attachments!.push(file);
+  };
+
+  const updateMessage = (data: ApiMessage): void => {
+    const message = messages.value!.find(m => m.id === msg.id)!;
+    if (!message) return;
+    message.state = 'sent';
+    message.id = data.id;
+    message.timestamp = data.timestamp;
+    onMessage(data);
+  };
+
+  const msg: ApiMessage = createMessage(currentMessage.value, replyTo.value, userStore.user, renderFile);
+  emitCreateMessage(msg, chat.value!.id, updateMessage);
   messages.value.unshift(msg);
-  setTimeout(() => {
-      if (!messages.value) return;
-      messages.value.find((m) => m.id === msg.id)!.state = 'sent';
-    }, 2000);
+
   replyTo.value = null;
   currentMessage.value.text = '';
   currentMessage.value.files = [];
@@ -65,7 +105,7 @@ function addFile(event: DragEvent) {
   currentMessage.value.files.push(file);
 }
 
-function dragOver(event: DragEvent) {
+function dragOver() {
   showDragOver.value = true;
 }
 </script>
@@ -73,11 +113,17 @@ function dragOver(event: DragEvent) {
 <template>
   <div v-if=chat :class=styles.chat>
     <div :class=styles.cheddar>
-      <img :src=chat.avatar alt="avatar" :class=styles.avatar>
+      <Avatar :avatar='chat.avatar ?? null' :size=50 />
       <h2 :class=styles.name>{{ chat.name }}</h2>
     </div>
     <div :class=styles.container>
-      <div ref="messagesElement" :class=styles.messages @mouseout="showDragOver = false" v-if=messages @drop.prevent="addFile" @dragover.prevent="dragOver">
+      <div ref="messagesElement" 
+        v-if=messages 
+        :class=styles.messages 
+        @mouseout="showDragOver = false" 
+        @drop.prevent="addFile" 
+        @dragover.prevent="dragOver"
+      >
         <div v-if="showDragOver" :class=styles.dragover>
           <span>Drop file to send</span>
         </div>
@@ -87,15 +133,20 @@ function dragOver(event: DragEvent) {
               {{ date }} 
             </span>
           </div>
-          <div  v-for='(message, index) in messagesByDate[date]' :key=message.id 
-            :class='classes(styles.message, isMyMessage(message) && styles.sent, message.state === "failed" && styles.failed)' 
+          <div  v-for='(message, index) in messagesByDate[date]' 
+            :class='classes(
+              styles.message, 
+              isMyMessage(message, userStore.user) && styles.sent, 
+              styles.animate, 
+              message.state === "failed" && styles.failed
+            )' 
             @dblclick="replyTo = message"
           > 
-            <Message 
+            <Message :key=message.id 
               :message=message 
               :state='message.state ?? "sent"'
-              :showAvatar='showAvatar(messages, index, chat.isPrivate)' 
-              :showName='showName(message, chat.isPrivate)' 
+              :showAvatar='showAvatar(messages, index, chat.isPrivate, userStore.user)' 
+              :showName='showName(message, chat.isPrivate, userStore.user)' 
             >  
             </Message>
           </div>
@@ -118,8 +169,8 @@ function dragOver(event: DragEvent) {
           <span :class=styles.info v-if=replyTo>
             Reply to:
             <span :class='styles.message'>
-              {{ replyTo.author.name }}
-              <p>{{ replyTo.text ? replyTo.text : replyTo.files && replyTo.files[0].name }}</p>            
+              {{ replyTo.sender.name }}
+              <p>{{ replyTo.text }}</p>            
             </span> 
           </span>
           <button :class=styles.close @click='replyTo = null'><span>x</span></button>

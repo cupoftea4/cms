@@ -30,6 +30,24 @@
       padding-bottom: .75rem;
     }
   }
+
+  .notification {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .5rem;
+    .preview {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .time {
+      font-size: 12px;
+      color: rgb(169, 166, 166);
+      margin-left: auto;
+      align-self: flex-end;
+    }
+  }
 }
 
 

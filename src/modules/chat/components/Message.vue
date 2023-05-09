@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed, reactive, ref, toRefs, watchEffect } from 'vue';
-import PendingIcon from '@/assets/PendingIcon.vue';
-import MultilineText from '@/shared/ui/MultilineText.vue';
-import { isFileAnImage, getBlobUrlFromFIle, isMyMessage, formatMessageTime } from './helpers';
-import { classes } from '@/styles/utils';
-
+import { computed, ref, toRefs, watchEffect } from 'vue';
+import { isFileAnImage, getBlobUrlFromFIle, isMyMessage, formatMessageTime } from '../helpers';
 import type { ApiMessage, ClientMessage, ApiAttachment } from '@/shared/types';
+
+import { classes } from '@/styles/utils';
+import MultilineText from '@/shared/ui/MultilineText.vue';
+import PendingIcon from '@/assets/PendingIcon.vue';
+
 import styles from './Message.module.scss';
+import { useUserStore } from '@/stores/user';
 
 
 const props = defineProps<{
@@ -17,14 +19,15 @@ const props = defineProps<{
 }>();
 
 const { message } = toRefs(props);
+const userStore = useUserStore();
 
-const isOwn = computed(() => isMyMessage(message.value));
-const isMessageWithImagesOnly = computed(() => message.value.files && !message.value.files.map(isFileAnImage).includes(false));
+const isOwn = computed(() => isMyMessage(message.value, userStore.user));
+const isMessageWithImagesOnly = computed(() => message.value.attachments && !message.value.attachments.map(isFileAnImage).includes(false));
 
-let files = ref<ApiAttachment[]>(isMessageWithImagesOnly.value ? [] : message.value.files!);
+let files = ref<ApiAttachment[]>(isMessageWithImagesOnly.value ? [] : message.value.attachments!);
 watchEffect(async () => {
-  files.value = isMessageWithImagesOnly && message.value.files?.length ? 
-    await Promise.all(message.value.files!.map(async (file) => ({...file, url: file.url ?? await getBlobUrlFromFIle(file)}))) 
+  files.value = isMessageWithImagesOnly && message.value.attachments?.length ? 
+    await Promise.all(message.value.attachments!.map(async (file) => ({...file, url: file.url ?? await getBlobUrlFromFIle(file)}))) 
     : [];
 });
 
@@ -33,19 +36,19 @@ watchEffect(async () => {
 <template>
   <img 
     v-if='showAvatar' 
-    :src=message.author.avatar :class=styles.avatar alt="avatar"
+    :src=message.sender.avatar :class=styles.avatar alt="avatar"
   >
   <div :class='classes(styles.content, isOwn && styles.sent)'>
     <span>
       <div v-if=message.replyTo :class=styles.reply>
-          {{ message.replyTo.text ? message.replyTo.text : message.replyTo.files![0]?.name }}
+          {{ message.replyTo && (message.replyTo?.preview) }}
       </div>
-      <h3 v-if='showName'>{{ message.author.name }}</h3>
+      <h3 v-if='showName'>{{ message.sender.name }}</h3>
       <MultilineText v-if=message.text :text=message.text />
-      <div v-if='message.files && message.files.length > 0'>
+      <div v-if='message.attachments && message.attachments.length > 0'>
         <div v-if='isMessageWithImagesOnly'>
           <img 
-            v-for='image in message.files' 
+            v-for='image in message.attachments' 
             :src=image.data :class=styles.image alt="image"
           >
         </div>
