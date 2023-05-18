@@ -1,22 +1,92 @@
+.root {
+  .modal {
+    padding: 1rem;
+    background-color: var(--bg-darker-clr);
+  }
 
-.found-item.selected {
-  background-color: var(--primary-clr);
-}
+  h2 {
+    margin-bottom: .625rem;
+  }
 
-.found {
-  div {
-    cursor: pointer;
-    padding: .5rem 1rem;
-    border-radius: .25rem;
-    transition: background-color .2s ease-in-out;
-    &.selected {
-      background-color: var(--primary-clr);
-      &:hover {
-        background-color: var(--primary-clr);
+  .toggle {
+    display: flex;
+    border: gray solid 1px;
+    border-radius: .325rem;
+    margin: 1rem .5rem;
+    button {
+      transition: background-color .2s ease-in-out;
+      flex: 1;
+      &:first-child {
+        border-radius: .325rem 0 0 .325rem;
+      }
+      &:last-child {
+        border-radius: 0 .325rem .325rem 0;
       }
     }
-    &:hover {
-      background-color: #eeeeee75;
+    button.selected {
+      background-color: gray;
     }
   }
+  
+  input {
+    border-radius: .325rem;
+    border: gray solid 1px;
+    padding: .25rem .5rem;
+  }
+  
+  .found {
+    margin: .5rem;
+    li {
+      display: flex;
+      gap: .5rem;
+      cursor: pointer;
+      padding: .125rem .5rem;
+      align-items: center;
+      border-radius: .325rem;
+      transition: background-color .2s ease-in-out;
+      &.selected {
+        background-color: #99545e75;
+        &:hover {
+          background-color: #99545e75;
+        }
+      }
+      &:hover {
+        background-color: #88858525;
+      }
+    }
+  }
+  
+  button {
+    width: 100%;
+  }
+
+  button.mode {
+    color: var(--accent-clr);
+  }
+
+  button.cancel {
+    padding: .5rem;
+    transition: background-color .2s ease-in-out;
+    border-radius: .325rem;
+    &:hover, &:focus-visible {
+      background-color: #88858525;
+    }
+  }
+  button.create {
+    background-color: #88858525;
+    cursor: not-allowed;
+    padding: .5rem;
+    border-radius: .325rem;
+    width: 100%;
+    transition: background-color .2s ease-in-out;
+    &.active {
+      cursor: pointer;
+      background-color: var(--primary-clr);
+      &:hover, &:focus-visible {
+        background-color: var(--primary-hover-clr);
+      }
+    }
+  }
+
 }
+

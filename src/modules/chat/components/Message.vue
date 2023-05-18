@@ -9,13 +9,16 @@ import PendingIcon from '@/assets/PendingIcon.vue';
 
 import styles from './Message.module.scss';
 import { useUserStore } from '@/stores/user';
+import Avatar from '../ui/Avatar.vue';
 
 
 const props = defineProps<{
   message: ApiMessage; 
   state: ClientMessage['state'];
+  isChatPrivate: boolean;
   showAvatar: boolean;
   showName: boolean;
+  jumpToMessage: (messageId: string) => void;
 }>();
 
 const { message } = toRefs(props);
@@ -27,35 +30,32 @@ const isMessageWithImagesOnly = computed(() => message.value.attachments && !mes
 let files = ref<ApiAttachment[]>(isMessageWithImagesOnly.value ? [] : message.value.attachments!);
 watchEffect(async () => {
   files.value = isMessageWithImagesOnly && message.value.attachments?.length ? 
-    await Promise.all(message.value.attachments!.map(async (file) => ({...file, url: file.url ?? await getBlobUrlFromFIle(file)}))) 
+    await Promise.all(message.value.attachments!.map(async (file) => ({...file, path: (file?.path && `http://localhost:3000/${file.path}`) ?? await getBlobUrlFromFIle(file)}))) 
     : [];
 });
 
 </script>
 
 <template>
-  <img 
-    v-if='showAvatar' 
-    :src=message.sender.avatar :class=styles.avatar alt="avatar"
-  >
-  <div :class='classes(styles.content, isOwn && styles.sent)'>
+  <Avatar v-if="showAvatar" :avatar=message.sender.avatar :size=50  :class='styles.avatar'/>
+  <div :class='classes(styles.content, isOwn && styles.sent, (!showAvatar && !isChatPrivate) && styles["no-avatar"])'>
     <span>
-      <div v-if=message.replyTo :class=styles.reply>
+      <h3 v-if='showName'>{{ message.sender.name }}</h3>
+      <div v-if=message.replyTo :class=styles.reply @click=jumpToMessage(message.replyTo.id)>
           {{ message.replyTo && (message.replyTo?.preview) }}
       </div>
-      <h3 v-if='showName'>{{ message.sender.name }}</h3>
       <MultilineText v-if=message.text :text=message.text />
       <div v-if='message.attachments && message.attachments.length > 0'>
         <div v-if='isMessageWithImagesOnly'>
           <img 
             v-for='image in message.attachments' 
-            :src=image.data :class=styles.image alt="image"
+            :src='image?.data ?? `http://localhost:3000/${image.path}`' :class=styles.image alt="image"
           >
         </div>
         <div v-else>
           <a 
             v-for='file in files' 
-            :href='file.url' :class=styles.file alt="file"
+            :href='file.path' :class=styles.file alt="file"
             :download=file.name
           >
             {{ file.name }}
@@ -77,3 +77,4 @@ watchEffect(async () => {
 <style scoped>
 
 </style>
+   

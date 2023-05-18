@@ -8,11 +8,10 @@ import Chat from '@/modules/chat/components/Chat.vue';
 
 import { useWindowResize } from '@/composables/useWindowResize';
 import { useRouter } from 'vue-router';
-import { emitGetChats, emitGetUnreadMessages, onNewMessage } from '@/modules/chat/gateway';
+import { emitGetChats, emitGetUnreadMessages, subscribeToNewMessage } from '@/modules/chat/gateway';
 import type { ApiChat, ApiMessage } from '@/shared/types';
 import { useMessagesStore } from '@/stores/messages';
 import { socket } from '@/services/socketio.service';
-import { sortMessages } from '@/modules/chat/helpers';
 
 const chats = ref<ApiChat[]>([]);
 
@@ -27,9 +26,8 @@ onMounted(() => {
   socket.connect();
   socket.on('connected', () => {
     console.log('connected');
-    emitGetChats(data => {
-    chats.value = data;
-    onNewMessage('all', (message, chatId) => {
+    updateChats();
+    subscribeToNewMessage('all', (message, chatId) => {
       if (!chatId) return;
       updateLastMessage(message, chatId);
       const chatName = chats.value.find(c => c.id === chatId)?.name;
@@ -40,14 +38,21 @@ onMounted(() => {
         timestamp: message.timestamp,
         chatId, 
         chatName,
-      })
-
+      });
     });
     emitGetUnreadMessages(data => messagesStore.unreadMessages = data);
   });
-  });
 
 })
+
+function updateChats(chat?: ApiChat) {
+  if (chat) {
+    chats.value = chats.value.filter(c => c.id !== chat.id);
+    chats.value.unshift(chat);
+    return;
+  }
+  emitGetChats(data => chats.value = data);
+}
 
 watchEffect(() => {
   const id = router.currentRoute.value.params.id as string;
@@ -76,7 +81,7 @@ function updateLastMessage(message: ApiMessage, chatId: string) {
 
 <template>
   <div class="messenger">
-    <ChatList v-if="!isMobile(width) || !selectedChat" :chats=chats ></ChatList>
+    <ChatList v-if="!isMobile(width) || !selectedChat" :chats=chats :updateChats=updateChats ></ChatList>
     <Chat v-if=selectedChat :chat=selectedChat :onMessage='(m: ApiMessage) => updateLastMessage(m, selectedChatId!)'></Chat>
   </div>
 </template>

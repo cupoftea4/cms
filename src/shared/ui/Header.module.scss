@@ -14,6 +14,9 @@
     .bell {
       transition: all .25s ease-in-out;
       margin: .5rem 0rem; 
+      &.new {
+        animation: shake .4s ease-in-out 2;
+      }
     }
     
     .bell:hover {
@@ -50,6 +53,9 @@
   }
 }
 
+.logout {
+  max-width: 5rem;
+} 
 
 @keyframes shake {
   0% {

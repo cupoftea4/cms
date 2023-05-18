@@ -21,7 +21,7 @@ export type User = {
   id: number
   name: string
   email: string
-  avatar?: string
+  avatar: string | null
 };
 
 export type ChatUser = Pick<User, "id" | "name" | "avatar">;
@@ -50,7 +50,7 @@ export type ApiMessage = {
   sender: {
     id: number;
     name: string;
-    avatar?: string;
+    avatar: string | null;
   };
 }
 
@@ -64,9 +64,9 @@ export type ClientMessage = ApiMessage & { state?: 'pending' | 'sent' | 'failed'
 
 export type ApiAttachment = {
   id: number;
-  url?: string;
+  path?: string;
   data?: any;
-  type: string;
+  fileType: string;
   name: string;
 }
 

@@ -11,12 +11,14 @@ export function showAvatar(messages: ApiMessage[], index: number, isChatPrivate:
           currentMessage?.sender.id === messages[index + 1]?.sender.id);
 }
 
-export function showName(currentMessage: ApiMessage, isChatPrivate: boolean, user: User | null) {
-  return !(isChatPrivate || isMyMessage(currentMessage, user));
+export function showName(messages: ApiMessage[], index: number, isChatPrivate: boolean, user: User | null) {
+  const currentMessage = messages[index];
+  return !(isChatPrivate || isMyMessage(currentMessage, user) || currentMessage?.sender.id === messages[index - 1]?.sender.id);
 }
 
 export function isFileAnImage(file: File | ApiAttachment) {
-  return file.type.startsWith('image');
+  if (file instanceof File) return file.type.startsWith('image');
+  return file.fileType.startsWith('image');
 }
 
 export async function getBlobUrlFromFIle(file: ApiAttachment) {
@@ -69,6 +71,7 @@ export function getMessageDate(message: ApiMessage) {
 
 export function sortMessagesByDate(messages: ClientMessage[] | null) {
   if (!messages) return {};
+  messages = sortMessages(messages);
   const messagesByDate: Record<string, ClientMessage[]> = {};
   messages.forEach((message) => {
     const dateKey = getMessageDate(message);
@@ -85,7 +88,8 @@ export function createMessage(
   message: {text: string, files: File[]}, 
   replyTo: ApiMessage | null, 
   user: User | null,
-  renderFile: (file: ApiAttachment, id: string) => void
+  renderFile: (file: ApiAttachment, id: string) => void,
+  sendMessage: (msg: ApiMessage) => void
 ) {
   const replyToMessage: ReplyMessage = replyTo 
     ? { id: replyTo.id, preview: replyTo.text ?? replyTo.attachments![0].name } 
@@ -100,23 +104,31 @@ export function createMessage(
     attachments: [],
     state: 'pending'
   }
-
+  const attachments: ApiAttachment[] = [];
+  const filesLength = message.files.length;
   message.files.forEach((file) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = () => {
       const data = reader.result;
+      const base64Data = (data as string).split(',')[1]
       const attachment: ApiAttachment = {
         id: Date.now(),
-        data,
-        type: file.type,
+        data: base64Data,
+        fileType: file.type,
         name: file.name,
       }
-      renderFile(attachment, msg.id);
+      attachments.push(attachment);
+      console.log("Attachments: ", attachments, message.files);
+      if (attachments.length === filesLength) {
+        sendMessage({...msg, attachments});
+      }
+      renderFile({...attachment, data}, msg.id);
     }
+
   });
 
-
+  if (filesLength === 0) sendMessage(msg); 
   return msg;
 }
 

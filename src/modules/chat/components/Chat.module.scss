@@ -30,11 +30,11 @@
     margin: 0 auto;
     display: flex;
     flex-direction: column;
+    max-height: 80vh;
     
     .messages {
       color: var(--primary-fg-clr);  
       @include auto-scroll(y, thin, transparent, gray); 
-      max-height: 66vh; // TODO: fix this   
       display: flex;
       flex-direction: column-reverse;
       position: relative;
@@ -71,7 +71,12 @@
         z-index: 200;
       }
       .message {
+        position: relative;
         cursor: pointer;
+        transition: background-color 1s ease-in-out;
+        &.highlight {
+          background-color: hsla(351, 36%, 55%, 0.334);
+        }
         &.animate {
           animation: show-message .2s ease-in-out;
         }
@@ -182,4 +187,14 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+@keyframes highlight-message {
+  0% {
+    background-color: hsla(351, 36%, 55%, 0.334);
+  }
+  90% {
+    background-color: hsla(351, 36%, 55%, 0.334);
+  }
+  
 }

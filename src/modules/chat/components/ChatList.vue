@@ -10,17 +10,12 @@ import Avatar from '@/modules/chat/ui/Avatar.vue';
 
 import styles from './ChatList.module.scss';
 
-const { chats } = defineProps<{
+const { chats, updateChats } = defineProps<{
   chats: ApiChat[];
+  updateChats: () => void;
 }>();
 
 const showCreateChat = ref(false);
-
-function createChat() {
-  console.log('create chat');
-  const data = emitCreateChat({ name: 'New chat', isPrivate: true, userIds: [1, 2]});
-  console.log(data);
-}
 
 </script>
 
@@ -42,9 +37,9 @@ function createChat() {
         </router-link>
       </li>
       <li>
-        <button @click='showCreateChat = true' :class=styles.button>+ New Chat</button>
+        <button @click='showCreateChat = true' :class=styles.create>+ New Chat</button>
       </li>
     </ol>
+    <NewChat v-if=showCreateChat :updateChats=updateChats :close="() => showCreateChat = false" />
   </div>
-  <NewChat v-if=showCreateChat />
 </template>

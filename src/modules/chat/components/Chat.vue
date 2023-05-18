@@ -1,19 +1,38 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, toRefs, watchEffect } from 'vue';
+import { computed, onMounted, onUnmounted, ref, toRefs, VueElement, watchEffect } from 'vue';
 import { classes } from '@/styles/utils';
 import type { ApiAttachment, ApiChat, ApiMessage, ClientMessage } from '@/shared/types';
 
-import { emitCreateMessage, emitGetMessages, onNewMessage } from '../gateway';
+import { 
+  emitCreateMessage, 
+  emitGetMessages, 
+  emitGetUnreadMessages, 
+  emitReadChat, 
+  subscribeToNewMessage, 
+  subscribeToChatRead, 
+  unsubscribeFromChatRead, 
+  unsubscribeFromNewMessage, 
+  subscribeToUpdatedMessage,
+  subscribeToDeletedMessage,
+  unsubscribeFromUpdatedMessage,
+  unsubscribeFromDeletedMessage,
+  emitDeleteMessage,
+  emitUpdateMessage
+} from '../gateway';
+
+import useOnClickOutside from '@/composables/useOnClickOutside';
 import { createMessage, isMyMessage, showAvatar, showName, sortMessagesByDate } from '../helpers';
 
 import Avatar from '@/modules/chat/ui/Avatar.vue';
 import SendIcon from '@/assets/SendIcon.vue';
 import LoadingMessages from '../ui/LoadingMessages.vue';
-import AttachmentButton from './AttachmentButton.vue';
+import AttachmentButton from '../ui/AttachmentButton.vue';
 import Message from './Message.vue';
 
 import styles from './Chat.module.scss';
 import { useUserStore } from '@/stores/user';
+import { useMessagesStore } from '@/stores/messages';
+import MessageContextMenu from '../ui/MessageContextMenu.vue';
 
 const props = defineProps<{
   chat: ApiChat | undefined; 
@@ -26,38 +45,77 @@ const { onMessage } = props;
 const messages = ref<ClientMessage[] | null>(null);
 const currentMessage = ref<{text: string, files: File[]}>({text: '', files: []});
 const replyTo = ref<ApiMessage | null>(null);
+const editing = ref<ApiMessage | null>(null);
 const messagesByDate = computed(() => sortMessagesByDate(messages.value));
 const messagesElement = ref<HTMLElement | null>(null);
 const showDragOver = ref(false);
+const contextMenuMessageId = ref<string | null>(null);
+const contextMenuPosition = ref<{x: number, y: number} | null>(null);
 const userStore = useUserStore();
+const messagesStore = useMessagesStore();
+
+const menuRef = useOnClickOutside(() => console.log("click outside"));
 
 onMounted(() => {
   if (!chat.value) return;
-  onNewMessage(chat.value.id, (message) => {
-    console.log('new message in Chat', message);
+  subscribeToNewMessage('new', (message, chatId) => {
+    if (chatId !== chat.value?.id) return;
+    console.log('new message', message, chatId);
+    emitReadChat(chat.value!.id);
     messages.value!.unshift({...message, state: message.isRead ? 'read' : 'sent'});
     messagesElement.value?.scrollTo(0, 0);
   });
+  subscribeToChatRead('chat', (chatId) => {
+    if (chatId !== chat.value?.id) return;
+    messages.value?.forEach(m => m.state = 'read');
+  });
+  subscribeToUpdatedMessage('updated', (message: ApiMessage, chatId: string) => {
+    if (chatId !== chat.value?.id) return;
+    editMessage(message);
+  })
+  subscribeToDeletedMessage('deleted', (message: ApiMessage, chatId: string) => {
+    if (chatId !== chat.value?.id) return;
+    deleteMessage(message.id);
+  })
 });
 
-watchEffect(() => {
-  console.log("Watch messages", messages.value);
-})
+onUnmounted(() => {
+  unsubscribeFromNewMessage('new');
+  unsubscribeFromUpdatedMessage('updated');
+  unsubscribeFromDeletedMessage('deleted');
+  unsubscribeFromChatRead('chat');
+});
+
+function deleteMessage(messageId: string) {
+  messages.value = messages.value!.filter(m => m.id !== messageId);
+}
+
+function editMessage(message: ApiMessage) {
+  const messageIndex = messages.value!.findIndex(m => m.id === message.id);
+  messages.value![messageIndex] = message;
+}
 
 watchEffect(() => {
   if (!chat.value) return;
   messages.value = null;
-  emitGetMessages(
-    chat.value.id, 
-    data => {
-      // setTimeout(() => messages.value = data.map((message) => ({...message, state: message.isRead ? 'read' : 'sent'})), 2000);
+  emitReadChat(chat.value.id, 
+    (isRead) => isRead && emitGetUnreadMessages(data => messagesStore.unreadMessages = data)
+  );
+  emitGetMessages(chat.value.id, data => {
       messages.value = data.map((message) => ({...message, state: message.isRead ? 'read' : 'sent'}));
-    }
-  ); 
+    }); 
 });
 
 function sendMessage() {
   if (!messages.value || (!currentMessage.value.text.trim() && !currentMessage.value.files.length)) {
+    return;
+  }
+
+  if (editing.value) {
+    const newMessage = {...editing.value, text: currentMessage.value.text}; 
+    emitUpdateMessage(newMessage, chat.value!.id, (isUpdated: boolean) => isUpdated && editMessage(newMessage));
+    editing.value = null;
+    currentMessage.value.text = '';
     return;
   }
 
@@ -76,8 +134,13 @@ function sendMessage() {
     onMessage(data);
   };
 
-  const msg: ApiMessage = createMessage(currentMessage.value, replyTo.value, userStore.user, renderFile);
-  emitCreateMessage(msg, chat.value!.id, updateMessage);
+  const msg: ApiMessage = createMessage(
+    currentMessage.value, 
+    replyTo.value, 
+    userStore.user, 
+    renderFile,
+    (msg: ApiMessage) => emitCreateMessage(msg, chat.value!.id, updateMessage)
+  );
   messages.value.unshift(msg);
 
   replyTo.value = null;
@@ -105,8 +168,38 @@ function addFile(event: DragEvent) {
   currentMessage.value.files.push(file);
 }
 
+function jumpToMessage(id: string) {
+  const messageElement = messagesElement.value?.querySelector(`[data-id="${id}"]`);
+  if (!messageElement) return;
+  messageElement.classList.add(styles.highlight);
+  setTimeout(() => messageElement.classList.remove(styles.highlight), 2000);
+  messageElement.scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+
+function jumpToDate(date: string) {
+  const message = messagesByDate.value[date]?.[0];
+  if (!message) return;
+  jumpToMessage(message.id);
+}
+
 function dragOver() {
   showDragOver.value = true;
+}
+
+function showContextMenu(event: MouseEvent, messageId: string) {
+  const messageElement = messagesElement.value?.querySelector(`[data-id="${messageId}"]`);
+  if (!messageElement) return;
+  const messageRect = messageElement.getBoundingClientRect();
+  const message = messages.value?.find(m => m.id === messageId);
+  if (!message) return;
+  const messagesRect = messagesElement.value!.getBoundingClientRect();
+  const bottomPosition = messagesRect.top + messagesRect.height;
+  const rightPosition = messagesRect.left + messagesRect.width;
+  let yModifier = 0, xModifier = 0;
+  if (bottomPosition - event.clientY < 100) yModifier = 100;
+  if (rightPosition - event.clientX < 100) xModifier = 90; 
+  contextMenuPosition.value = {x: event.clientX - messageRect.left - xModifier, y: event.clientY - messageRect.top - yModifier};
+  contextMenuMessageId.value = messageId;
 }
 </script>
 
@@ -114,7 +207,10 @@ function dragOver() {
   <div v-if=chat :class=styles.chat>
     <div :class=styles.cheddar>
       <Avatar :avatar='chat.avatar ?? null' :size=50 />
-      <h2 :class=styles.name>{{ chat.name }}</h2>
+      <div>
+        <h2 :class=styles.name>{{ chat.name }}</h2>
+        <span :class=styles.sub>{{ chat.isPrivate ? "private" : "public" }}</span>
+      </div>
     </div>
     <div :class=styles.container>
       <div ref="messagesElement" 
@@ -129,7 +225,7 @@ function dragOver() {
         </div>
         <div v-for="date in Object.keys(messagesByDate)" :key=date :class='styles["by-date"]'>
           <div style="position: sticky; " :class="styles.date" >
-            <span>
+            <span @click=jumpToDate(date)>
               {{ date }} 
             </span>
           </div>
@@ -140,15 +236,28 @@ function dragOver() {
               styles.animate, 
               message.state === "failed" && styles.failed
             )' 
+            :data-id=message.id
             @dblclick="replyTo = message"
+            @contextmenu.prevent.stop='e => showContextMenu(e, message.id)'
           > 
-            <Message :key=message.id 
+            <Message :key='message.id + message.text'
               :message=message 
               :state='message.state ?? "sent"'
-              :showAvatar='showAvatar(messages, index, chat.isPrivate, userStore.user)' 
-              :showName='showName(message, chat.isPrivate, userStore.user)' 
+              :isChatPrivate=chat.isPrivate
+              :showAvatar='showAvatar(Object.values(messagesByDate).flat(1), index, chat.isPrivate, userStore.user)' 
+              :showName='showName(Object.values(messagesByDate).flat(1), index, chat.isPrivate, userStore.user)' 
+              :jumpToMessage=jumpToMessage
             >  
             </Message>
+            <MessageContextMenu 
+              v-if='contextMenuMessageId === message.id' 
+              :menuRef="menuRef"
+              :position='contextMenuPosition'
+              :isOwn='isMyMessage(message, userStore.user)'
+              :onReply="() => {replyTo = message; contextMenuMessageId = null;}"
+              :onEdit="() => {editing = message; currentMessage.text = message.text ?? ''; contextMenuMessageId = null;}"
+              :onDelete='() => {emitDeleteMessage(message, chat!.id, (isDeleted: boolean) => isDeleted && deleteMessage(message.id)); contextMenuMessageId = null;}'
+            />
           </div>
         </div>
       </div>
@@ -174,6 +283,15 @@ function dragOver() {
             </span> 
           </span>
           <button :class=styles.close @click='replyTo = null'><span>x</span></button>
+        </div>
+        <div v-if='messages && editing' :class='styles.details'> 
+          <span :class=styles.info v-if=editing>
+            Editing:
+            <span :class='styles.message'>
+              <p>{{ editing.text }}</p>            
+            </span> 
+          </span>
+          <button :class=styles.close @click='editing = null'><span>x</span></button>
         </div>
         <div v-if='messages && (currentMessage.files.length)' :class='styles.details'> 
           <span :class=styles.info v-if='currentMessage.files.length > 0'>

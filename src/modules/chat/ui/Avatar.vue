@@ -8,14 +8,9 @@ const props = defineProps<{
 
 </script>
 <template>
-  <div class="avatar" :style="{
-    width: `${size}px`,
-    height: `${size}px`,
-  }">
+  <div class="avatar" :style='{display: "flex", "align-items": "center"}'>
     <img v-if="avatar" :src="avatar">
-    <div v-else class="default" >
-      <DefaultAvatar />
-    </div>
+      <DefaultAvatar v-else />
   </div>
 </template>
 <style scoped>

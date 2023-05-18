@@ -2,7 +2,7 @@
   "extends": "@vue/tsconfig/tsconfig.web.json",
   "include": ["env.d.ts", "global.d.ts", "src/**/*", "src/**/*.vue"],
   "compilerOptions": {
-    "lib": ["ES2017.String", "es6", "dom",  "dom.iterable", "es2016"],
+    "lib": ["ES2017.String", "es6", "dom",  "dom.iterable", "es2019"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],

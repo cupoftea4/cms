@@ -30,7 +30,7 @@ const switchMode = () => {
 
 function handlePostMessage(ev: MessageEvent<{token: string, name: string, id: number, email: string}>) {
   if (ev.data.token) {
-    const user = {name: ev.data.name, id: ev.data.id, email: ev.data.email};
+    const user = {name: ev.data.name, id: ev.data.id, email: ev.data.email, avatar: null};
     userStore.updateProfile(user, ev.data.token);
     router.push("/");
     toast.success("Logged in successfully");
