@@ -10,6 +10,7 @@ import PendingIcon from '@/assets/PendingIcon.vue';
 import styles from './Message.module.scss';
 import { useUserStore } from '@/stores/user';
 import Avatar from '../ui/Avatar.vue';
+import { CHAT_SERVER_ORIGIN } from '@/shared/constants';
 
 
 const props = defineProps<{
@@ -30,7 +31,7 @@ const isMessageWithImagesOnly = computed(() => message.value.attachments && !mes
 let files = ref<ApiAttachment[]>(isMessageWithImagesOnly.value ? [] : message.value.attachments!);
 watchEffect(async () => {
   files.value = isMessageWithImagesOnly && message.value.attachments?.length ? 
-    await Promise.all(message.value.attachments!.map(async (file) => ({...file, path: (file?.path && `http://localhost:3000/${file.path}`) ?? await getBlobUrlFromFIle(file)}))) 
+    await Promise.all(message.value.attachments!.map(async (file) => ({...file, path: (file?.path && `${CHAT_SERVER_ORIGIN}/${file.path}`) ?? await getBlobUrlFromFIle(file)}))) 
     : [];
 });
 
@@ -49,7 +50,7 @@ watchEffect(async () => {
         <div v-if='isMessageWithImagesOnly'>
           <img 
             v-for='image in message.attachments' 
-            :src='image?.data ?? `http://localhost:3000/${image.path}`' :class=styles.image alt="image"
+            :src='image?.data ?? `${CHAT_SERVER_ORIGIN}/${image.path}`' :class=styles.image alt="image"
           >
         </div>
         <div v-else>

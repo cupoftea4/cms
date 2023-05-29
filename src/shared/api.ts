@@ -1,12 +1,13 @@
 import router from "@/router";
+import { MAIN_SERVER_ORIGIN } from "./constants";
 
 type FetchOptions = Omit<RequestInit, "body" | "method">;
 type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 const API_VERSION = "2";
 
-const FETCH_ORIGIN = `http://localhost:8000/api/v${API_VERSION}`;
-const FETCH_ORIGIN_AUTH = `http://localhost:8000/auth`;
+const FETCH_ORIGIN = `${MAIN_SERVER_ORIGIN}/api/v${API_VERSION}`;
+const FETCH_ORIGIN_AUTH = `${MAIN_SERVER_ORIGIN}/auth`;
 
 /**
  * Custom fetch function.
